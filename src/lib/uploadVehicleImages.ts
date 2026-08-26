@@ -1,7 +1,7 @@
 const isBase64Image = (value: string) => value.startsWith("data:image/");
 const isBase64Video = (value: string) => value.startsWith("data:video/");
 
-export async function uploadVehicleImages(images: string[]) {
+export async function uploadVehicleImages(images: string[], signal?: AbortSignal) {
   const sanitizedImages = images.filter((image) => image.trim().length > 0);
   const pendingUploads = sanitizedImages.filter(isBase64Image);
 
@@ -12,6 +12,7 @@ export async function uploadVehicleImages(images: string[]) {
   const response = await fetch("/api/uploadToCloudinary", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
+    signal,
     body: JSON.stringify({ images: pendingUploads }),
   });
 

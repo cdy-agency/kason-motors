@@ -10,7 +10,12 @@ export const BRAND_OPTIONS = [
   "Kia",
   "Ford",
   "BYD",
-  "Dongfeng"
+  "Dongfeng",
+  "FAW / Bestune",
+  "Geely",
+  "Leapmotor",
+  "Wuling",
+  "Changan",
 ] as const;
 
 export const CONDITION_OPTIONS = ["New", "Used", "Certified"] as const;

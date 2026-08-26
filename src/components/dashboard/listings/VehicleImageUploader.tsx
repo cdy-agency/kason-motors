@@ -1,6 +1,15 @@
 "use client";
 
-import { useId, useRef } from "react";
+import { uploadVehicleImages } from "@/lib/uploadVehicleImages";
+import { useEffect, useId, useRef, useState } from "react";
+
+type UploadItem = {
+  id: string;
+  name: string;
+  preview: string;
+  status: "uploading" | "error";
+  error?: string;
+};
 
 type VehicleImageUploaderProps = {
   label?: string;
@@ -10,6 +19,7 @@ type VehicleImageUploaderProps = {
   maxFiles?: number;
   helperText?: string;
   onChange: (images: string[]) => void;
+  onUploadingChange?: (isUploading: boolean) => void;
 };
 
 export default function VehicleImageUploader({
@@ -20,10 +30,18 @@ export default function VehicleImageUploader({
   maxFiles = 8,
   helperText = "PNG, JPG, WEBP up to 10MB each",
   onChange,
+  onUploadingChange,
 }: VehicleImageUploaderProps) {
   const inputId = useId();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const uploadControllers = useRef(new Map<string, AbortController>());
+  const imagesRef = useRef(value.filter(Boolean));
+  const [uploadItems, setUploadItems] = useState<UploadItem[]>([]);
   const images = value.filter(Boolean);
+
+  useEffect(() => {
+    imagesRef.current = images;
+  }, [images]);
 
   const readFileAsDataUrl = (file: File) =>
     new Promise<string>((resolve, reject) => {
@@ -41,14 +59,79 @@ export default function VehicleImageUploader({
     }
 
     const nextFiles = multiple ? fileList.slice(0, maxFiles - images.length) : fileList.slice(0, 1);
-    const nextImages = await Promise.all(nextFiles.map(readFileAsDataUrl));
-
-    onChange(multiple ? [...images, ...nextImages] : nextImages);
     event.target.value = "";
+
+    if (!multiple) {
+      uploadControllers.current.forEach((controller) => controller.abort());
+      uploadControllers.current.clear();
+      setUploadItems([]);
+      imagesRef.current = [];
+      onChange([]);
+    }
+
+    await Promise.all(nextFiles.map((file) => uploadFile(file)));
+  };
+
+  const uploadFile = async (file: File) => {
+    const id = `${file.name}-${file.lastModified}-${Math.random()}`;
+    const controller = new AbortController();
+    uploadControllers.current.set(id, controller);
+    const preview = URL.createObjectURL(file);
+    setUploadItems((items) => [...items, { id, name: file.name, preview, status: "uploading" }]);
+    onUploadingChange?.(true);
+
+    try {
+      const dataUrl = await readFileAsDataUrl(file);
+      const [uploadedImage] = await uploadVehicleImages([dataUrl], controller.signal);
+      if (!uploadedImage || controller.signal.aborted) {
+        return;
+      }
+
+      const nextImages = multiple
+        ? [...imagesRef.current, uploadedImage]
+        : [uploadedImage];
+      imagesRef.current = nextImages;
+      onChange(nextImages);
+      setUploadItems((items) => items.filter((item) => item.id !== id));
+    } catch (error) {
+      if (!controller.signal.aborted) {
+        setUploadItems((items) =>
+          items.map((item) =>
+            item.id === id
+              ? {
+                  ...item,
+                  status: "error",
+                  error: error instanceof Error ? error.message : "Upload failed",
+                }
+              : item,
+          ),
+        );
+      }
+    } finally {
+      uploadControllers.current.delete(id);
+      URL.revokeObjectURL(preview);
+      onUploadingChange?.(uploadControllers.current.size > 0);
+    }
+  };
+
+  const cancelUpload = (id: string) => {
+    uploadControllers.current.get(id)?.abort();
+    uploadControllers.current.delete(id);
+    setUploadItems((items) => items.filter((item) => item.id !== id));
+    onUploadingChange?.(uploadControllers.current.size > 0);
+  };
+
+  const cancelAllUploads = () => {
+    uploadControllers.current.forEach((controller) => controller.abort());
+    uploadControllers.current.clear();
+    setUploadItems([]);
+    onUploadingChange?.(false);
   };
 
   const removeImage = (indexToRemove: number) => {
-    onChange(images.filter((_, index) => index !== indexToRemove));
+    const nextImages = images.filter((_, index) => index !== indexToRemove);
+    imagesRef.current = nextImages;
+    onChange(nextImages);
   };
 
   const setPrimaryImage = (indexToPromote: number) => {
@@ -59,6 +142,7 @@ export default function VehicleImageUploader({
     const nextImages = [...images];
     const [selectedImage] = nextImages.splice(indexToPromote, 1);
     nextImages.unshift(selectedImage);
+    imagesRef.current = nextImages;
     onChange(nextImages);
   };
 
@@ -82,6 +166,7 @@ export default function VehicleImageUploader({
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
+          disabled={uploadControllers.current.size > 0}
           className={`w-full border-2 border-dashed rounded-xl py-8 flex flex-col items-center justify-center gap-2 transition-all duration-200 group cursor-pointer ${
             error
               ? "border-red-300 bg-red-50/40 hover:border-red-400"
@@ -156,6 +241,7 @@ export default function VehicleImageUploader({
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
+              disabled={uploadControllers.current.size > 0}
               className="w-full rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm font-semibold text-primary hover:bg-primary/10 transition-colors"
             >
               Add more images
@@ -163,6 +249,53 @@ export default function VehicleImageUploader({
           )}
         </div>
       )}
+
+      {uploadItems.length > 0 ? (
+        <div className="mt-3 overflow-hidden rounded-xl border border-gray-200 bg-gray-50/80">
+          <div className="flex items-center justify-between border-b border-gray-200 px-3 py-2.5">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-widest text-gray-600">
+                Upload queue
+              </p>
+              <p className="mt-0.5 text-xs text-gray-400">
+                {uploadItems.filter((item) => item.status === "uploading").length} in progress
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={cancelAllUploads}
+              className="rounded-md px-2.5 py-1.5 text-xs font-semibold text-red-600 hover:bg-red-50"
+            >
+              Cancel all
+            </button>
+          </div>
+          <div className="divide-y divide-gray-200">
+            {uploadItems.map((item) => (
+              <div key={item.id} className="flex items-center gap-3 px-3 py-2.5">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={item.preview} alt="" className="h-11 w-11 rounded-lg object-cover" />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-gray-700">{item.name}</p>
+                  {item.status === "uploading" ? (
+                    <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-gray-200">
+                      <div className="h-full w-1/2 animate-pulse rounded-full bg-primary" />
+                    </div>
+                  ) : (
+                    <p className="mt-0.5 truncate text-xs text-red-500">{item.error}</p>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => cancelUpload(item.id)}
+                  className="shrink-0 rounded-md px-2 py-1.5 text-xs font-semibold text-gray-500 hover:bg-white hover:text-red-600"
+                >
+                  {item.status === "uploading" ? "Cancel" : "Dismiss"}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : null}
 
       {error ? (
         <p className="mt-1.5 text-xs text-red-500 flex items-center gap-1">

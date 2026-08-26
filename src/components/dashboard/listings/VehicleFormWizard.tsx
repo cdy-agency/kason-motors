@@ -16,7 +16,6 @@ import {
   TRANSMISSION_OPTIONS,
 } from "@/components/dashboard/listings/vehicleFormOptions";
 import {
-  uploadVehicleImages,
   uploadVehicleVideo,
 } from "@/lib/uploadVehicleImages";
 import { VehicleFormData, vehicleFormSchema } from "@/lib/vehicleFormSchema";
@@ -41,6 +40,27 @@ type SelectFieldProps = {
   onChange: (
     event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
   ) => void;
+};
+
+type ColorFieldProps = {
+  label: string;
+  name: keyof VehicleFormData;
+  value: string | undefined;
+  options: readonly string[];
+  error?: string;
+  onChange: (name: keyof VehicleFormData, value: string) => void;
+};
+
+const COLOR_SWATCHES: Record<string, string> = {
+  Black: "#111827",
+  White: "#ffffff",
+  Silver: "#cbd5e1",
+  Gray: "#6b7280",
+  Beige: "#e7d3b0",
+  Blue: "#2563eb",
+  Red: "#dc2626",
+  Green: "#16a34a",
+  Brown: "#92400e",
 };
 
 const REQUIRED_FIELDS_BY_STEP: Record<number, (keyof VehicleFormData)[]> = {
@@ -87,6 +107,70 @@ function SelectField({
   );
 }
 
+function ColorField({
+  label,
+  name,
+  value,
+  options,
+  error,
+  onChange,
+}: ColorFieldProps) {
+  const selectedColors = (value ?? "")
+    .split(",")
+    .map((color) => color.trim())
+    .filter(Boolean);
+
+  const toggleColor = (color: string) => {
+    const nextColors = selectedColors.includes(color)
+      ? selectedColors.filter((selectedColor) => selectedColor !== color)
+      : [...selectedColors, color];
+    onChange(name, nextColors.join(", "));
+  };
+
+  return (
+    <div>
+      <span className="block text-xs font-semibold text-gray-500 uppercase tracking-widest mb-1.5">
+        {label}
+      </span>
+      <div
+        className={`grid grid-cols-2 gap-2 rounded-lg border bg-white p-2 shadow-sm ${
+          error ? "border-red-400" : "border-gray-200"
+        }`}
+      >
+        {options.map((color) => {
+          const isSelected = selectedColors.includes(color);
+          return (
+            <button
+              key={color}
+              type="button"
+              aria-pressed={isSelected}
+              onClick={() => toggleColor(color)}
+              className={`flex items-center gap-2 rounded-md px-2.5 py-2 text-left text-sm transition-colors ${
+                isSelected
+                  ? "bg-primary/10 font-semibold text-primary ring-1 ring-primary"
+                  : "text-gray-700 hover:bg-gray-50"
+              }`}
+            >
+              <span
+                aria-hidden="true"
+                className="h-4 w-4 flex-shrink-0 rounded-full border border-gray-300 shadow-inner"
+                style={{ backgroundColor: COLOR_SWATCHES[color] ?? color }}
+              />
+              {color}
+            </button>
+          );
+        })}
+      </div>
+      <p className="mt-1.5 text-xs text-gray-400">
+        {selectedColors.length > 0
+          ? `${selectedColors.length} color${selectedColors.length === 1 ? "" : "s"} selected`
+          : "Select one or more colors"}
+      </p>
+      {error ? <p className="mt-1.5 text-xs text-red-500">{error}</p> : null}
+    </div>
+  );
+}
+
 export default function VehicleFormWizard({
   initialData,
   submitLabel,
@@ -96,6 +180,7 @@ export default function VehicleFormWizard({
   const submitRequestedRef = useRef(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingImages, setIsUploadingImages] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState<FormErrors>({});
   const [form, setForm] = useState<VehicleFormData>({
@@ -152,6 +237,13 @@ export default function VehicleFormWizard({
     setForm((prev) => ({ ...prev, [name]: value }));
     if (submitted) {
       validateField(name as keyof VehicleFormData, value);
+    }
+  };
+
+  const handleColorChange = (name: keyof VehicleFormData, value: string) => {
+    setForm((prev) => ({ ...prev, [name]: value }));
+    if (submitted) {
+      validateField(name, value);
     }
   };
 
@@ -272,14 +364,13 @@ export default function VehicleFormWizard({
 
     try {
       setIsSubmitting(true);
-      const uploadedImages = await uploadVehicleImages(selectedImages);
       const uploadedVideoUrl = selectedVideo
         ? await uploadVehicleVideo(selectedVideo)
         : "";
       await onSubmit({
         ...result.data,
-        image: uploadedImages[0] ?? "",
-        imageUrls: uploadedImages,
+        image: selectedImages[0] ?? "",
+        imageUrls: selectedImages,
         videoUrl: uploadedVideoUrl || form.videoUrl || "",
       });
     } finally {
@@ -508,21 +599,21 @@ export default function VehicleFormWizard({
       {/* ── STEP 2: Appearance ── */}
       {currentStep === 2 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <SelectField
+          <ColorField
             label="Exterior Color (Optional)"
             name="exteriorColor"
             value={form.exteriorColor}
             options={EXTERIOR_COLOR_OPTIONS}
             error={errors.exteriorColor}
-            onChange={handleChange}
+            onChange={handleColorChange}
           />
-          <SelectField
+          <ColorField
             label="Interior Color (Optional)"
             name="interiorColor"
             value={form.interiorColor}
             options={INTERIOR_COLOR_OPTIONS}
             error={errors.interiorColor}
-            onChange={handleChange}
+            onChange={handleColorChange}
           />
           <SelectField
             label="Doors (Optional)"
@@ -671,6 +762,7 @@ export default function VehicleFormWizard({
             value={selectedImages}
             error={errors.image}
             onChange={handleImagesChange}
+            onUploadingChange={setIsUploadingImages}
           />
           <div>
             <label className="block text-xs font-semibold text-gray-500 uppercase tracking-widest mb-2">
@@ -700,7 +792,7 @@ export default function VehicleFormWizard({
         <button
           type="button"
           onClick={() => canGoBack && setCurrentStep((prev) => prev - 1)}
-          disabled={!canGoBack || isSubmitting}
+          disabled={!canGoBack || isSubmitting || isUploadingImages}
           className="px-4 py-2.5 rounded-lg border border-gray-200 text-sm font-semibold text-gray-600 disabled:opacity-40"
         >
           Back
@@ -709,7 +801,7 @@ export default function VehicleFormWizard({
           <button
             type="button"
             onClick={handleNextStep}
-            disabled={isSubmitting}
+            disabled={isSubmitting || isUploadingImages}
             className="px-4 py-2.5 rounded-lg bg-primary text-white text-sm font-semibold"
           >
             Next
@@ -720,7 +812,7 @@ export default function VehicleFormWizard({
             onClick={() => {
               submitRequestedRef.current = true;
             }}
-            disabled={isSubmitting}
+            disabled={isSubmitting || isUploadingImages}
             className="px-4 py-2.5 rounded-lg bg-primary text-white text-sm font-semibold disabled:opacity-70"
           >
             {isSubmitting ? loadingLabel : submitLabel}
