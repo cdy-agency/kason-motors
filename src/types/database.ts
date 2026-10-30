@@ -1,6 +1,7 @@
 // 📁 types/database.types.ts
 
 export type UserRole = "admin" | "user";
+export type BlogPostStatus = "DRAFT" | "PUBLISHED" | "ARCHIVED";
 
 export type Json =
   | string
@@ -50,6 +51,146 @@ export type Database = {
           reset_token_expiry?: string | null;
         };
 
+        Relationships: [];
+      };
+
+      blog_categories: {
+        Row: {
+          created_at: string;
+          description: string | null;
+          id: string;
+          name: string;
+          slug: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          description?: string | null;
+          id?: string;
+          name: string;
+          slug: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          description?: string | null;
+          id?: string;
+          name?: string;
+          slug?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+
+      blog_tags: {
+        Row: {
+          created_at: string;
+          id: string;
+          name: string;
+          slug: string;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          name: string;
+          slug: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          name?: string;
+          slug?: string;
+        };
+        Relationships: [];
+      };
+
+      blog_posts: {
+        Row: {
+          author_id: string | null;
+          category_id: string | null;
+          content: string;
+          created_at: string;
+          excerpt: string | null;
+          featured_image: string | null;
+          id: string;
+          published_at: string | null;
+          slug: string;
+          status: BlogPostStatus;
+          title: string;
+          updated_at: string;
+          vehicle_id: number | null;
+        };
+        Insert: {
+          author_id?: string | null;
+          category_id?: string | null;
+          content?: string;
+          created_at?: string;
+          excerpt?: string | null;
+          featured_image?: string | null;
+          id?: string;
+          published_at?: string | null;
+          slug: string;
+          status?: BlogPostStatus;
+          title: string;
+          updated_at?: string;
+          vehicle_id?: number | null;
+        };
+        Update: {
+          author_id?: string | null;
+          category_id?: string | null;
+          content?: string;
+          created_at?: string;
+          excerpt?: string | null;
+          featured_image?: string | null;
+          id?: string;
+          published_at?: string | null;
+          slug?: string;
+          status?: BlogPostStatus;
+          title?: string;
+          updated_at?: string;
+          vehicle_id?: number | null;
+        };
+        Relationships: [];
+      };
+
+      blog_post_tags: {
+        Row: {
+          post_id: string;
+          tag_id: string;
+        };
+        Insert: {
+          post_id: string;
+          tag_id: string;
+        };
+        Update: {
+          post_id?: string;
+          tag_id?: string;
+        };
+        Relationships: [];
+      };
+
+      blog_post_images: {
+        Row: {
+          caption: string | null;
+          created_at: string;
+          id: string;
+          image_url: string;
+          post_id: string;
+        };
+        Insert: {
+          caption?: string | null;
+          created_at?: string;
+          id?: string;
+          image_url: string;
+          post_id: string;
+        };
+        Update: {
+          caption?: string | null;
+          created_at?: string;
+          id?: string;
+          image_url?: string;
+          post_id?: string;
+        };
         Relationships: [];
       };
 
@@ -223,7 +364,15 @@ export type Database = {
       };
     };
 
-    Views: Record<string, never>;
+    Views: {
+      blog_public_post_authors: {
+        Row: {
+          author_name: string;
+          post_id: string;
+        };
+        Relationships: [];
+      };
+    };
     Functions: Record<string, never>;
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;

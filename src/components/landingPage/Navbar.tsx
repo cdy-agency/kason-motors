@@ -18,6 +18,7 @@ import {
   Wrench,
   Mail,
   ClipboardList,
+  Newspaper,
 } from "lucide-react";
 
 const navLinks = [
@@ -27,6 +28,7 @@ const navLinks = [
 
 const discoverLinks = [
   { label: "About Us", href: "/about-us", icon: <Info size={15} /> },
+  { label: "Blog & News", href: "/blog", icon: <Newspaper size={15} /> },
   { label: "Our Services", href: "/services", icon: <Wrench size={15} /> },
   { label: "Contact Us", href: "/contact", icon: <Mail size={15} /> },
   { label: "Maintenance ", href: "/mentenance", icon: <ClipboardList size={15} /> },

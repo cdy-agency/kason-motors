@@ -77,23 +77,42 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ message: "Forbidden" }, { status: 403 });
   }
 
+  const rawLimit = request.nextUrl.searchParams.get("limit");
+  const limit = rawLimit === null ? null : Number(rawLimit);
+  if (
+    rawLimit !== null &&
+    (!Number.isSafeInteger(limit) || (limit as number) < 1 || (limit as number) > 50)
+  ) {
+    return NextResponse.json({ message: "Invalid notification limit." }, { status: 400 });
+  }
+
+  let contactsQuery = supabase
+    .from("contacts")
+    .select("id, name, email, phonenumber, message, created_at, read")
+    .order("created_at", { ascending: false });
+  let bookingsQuery = supabase
+    .from("book_test_driver")
+    .select(
+      "id, car_id, full_name, email, phone, preferred_date, notes, created_at, read, cars ( name )",
+    )
+    .order("created_at", { ascending: false });
+  let maintenanceQuery = supabase
+    .from("maintenance_requests")
+    .select(
+      "id, name, phone, email, vehicle_model, license_plate, request_summary, needs_insurance, insurance, insurance_policy_number, created_at, read",
+    )
+    .order("created_at", { ascending: false });
+
+  if (limit !== null) {
+    contactsQuery = contactsQuery.limit(limit);
+    bookingsQuery = bookingsQuery.limit(limit);
+    maintenanceQuery = maintenanceQuery.limit(limit);
+  }
+
   const [contactsRes, bookingsRes, maintenanceRes] = await Promise.all([
-    supabase
-      .from("contacts")
-      .select("id, name, email, phonenumber, message, created_at, read")
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("book_test_driver")
-      .select(
-        "id, car_id, full_name, email, phone, preferred_date, notes, created_at, read, cars ( name )",
-      )
-      .order("created_at", { ascending: false }),
-    supabase
-      .from("maintenance_requests")
-      .select(
-        "id, name, phone, email, vehicle_model, license_plate, request_summary, needs_insurance, insurance, insurance_policy_number, created_at, read",
-      )
-      .order("created_at", { ascending: false }),
+    contactsQuery,
+    bookingsQuery,
+    maintenanceQuery,
   ]);
 
   if (contactsRes.error) {
@@ -168,7 +187,7 @@ export async function GET(request: NextRequest) {
     (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
   );
 
-  return NextResponse.json({ items });
+  return NextResponse.json({ items: limit === null ? items : items.slice(0, limit) });
 }
 
 // ── POST — save contact form message from public contact page ──────────────

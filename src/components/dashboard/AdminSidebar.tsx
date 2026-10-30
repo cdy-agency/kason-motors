@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
@@ -10,16 +10,11 @@ import {
   Settings,
   LogOut,
   ChevronRight,
-  Bell,
   MessageSquare,
+  Newspaper,
+  Tags,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { createClient } from "@supabase/supabase-js";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-);
 
 type AdminSidebarProps = {
   fullName: string;
@@ -55,14 +50,25 @@ const menuGroups = [
     ],
   },
   {
-    label: "System",
+    label: "Blog & News",
     items: [
       {
-        label: "Notifications",
-        href: "/admin/notification",
-        icon: Bell,
-        badge: null as string | null,
+        label: "Articles",
+        href: "/admin/blog",
+        icon: Newspaper,
+        badge: null,
       },
+      {
+        label: "Categories & Tags",
+        href: "/admin/blog/categories",
+        icon: Tags,
+        badge: null,
+      },
+    ],
+  },
+  {
+    label: "System",
+    items: [
       {
         label: "Settings",
         href: "/admin/settings",
@@ -89,41 +95,15 @@ export default function AdminSidebar({ fullName }: AdminSidebarProps) {
   const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const [notificationUnread, setNotificationUnread] = useState(0);
-
-  const fetchNotificationUnread = useCallback(async () => {
-    const res = await fetch("/api/admin/notifications/unread");
-    if (!res.ok) return;
-    const data = (await res.json()) as { total?: number };
-    setNotificationUnread(typeof data.total === "number" ? data.total : 0);
-  }, []);
-
-  useEffect(() => {
-    fetchNotificationUnread();
-
-    const channel = supabase
-      .channel("sidebar-notification-unread")
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "contacts" },
-        () => fetchNotificationUnread(),
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "book_test_driver" },
-        () => fetchNotificationUnread(),
-      )
-      .on(
-        "postgres_changes",
-        { event: "*", schema: "public", table: "maintenance_requests" },
-        () => fetchNotificationUnread(),
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [fetchNotificationUnread]);
+  const activeHref = menuGroups
+    .flatMap((group) => group.items)
+    .map((item) => item.href)
+    .filter(
+      (href) =>
+        pathname === href ||
+        (href !== "/admin" && pathname.startsWith(`${href}/`)),
+    )
+    .sort((left, right) => right.length - left.length)[0];
 
   const handleLogout = async () => {
     try {
@@ -217,7 +197,7 @@ export default function AdminSidebar({ fullName }: AdminSidebarProps) {
                 <div className="flex flex-col gap-0.5">
                   {group.items.map((item) => {
                     const Icon = item.icon;
-                    const isActive = pathname === item.href;
+                    const isActive = item.href === activeHref;
 
                     return (
                       <Link
@@ -255,28 +235,19 @@ export default function AdminSidebar({ fullName }: AdminSidebarProps) {
                           )}
                         </AnimatePresence>
 
-                        {!collapsed &&
-                          (item.href === "/admin/notification"
-                            ? notificationUnread > 0
-                            : Boolean(item.badge)) && (
+                        {!collapsed && Boolean(item.badge) && (
                             <motion.span
                               initial={{ opacity: 0, scale: 0.8 }}
                               animate={{ opacity: 1, scale: 1 }}
                               exit={{ opacity: 0, scale: 0.8 }}
                               className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none
                               ${
-                                item.href === "/admin/notification"
-                                  ? "bg-violet-500/10 text-violet-700 border border-violet-500/25"
-                                  : item.badge === "New"
-                                    ? "bg-primary/10 text-primary border border-primary/20"
-                                    : "bg-red-500/10 text-red-500 border border-red-500/20"
+                                item.badge === "New"
+                                  ? "bg-primary/10 text-primary border border-primary/20"
+                                  : "bg-red-500/10 text-red-500 border border-red-500/20"
                               }`}
                             >
-                              {item.href === "/admin/notification"
-                                ? notificationUnread > 99
-                                  ? "99+"
-                                  : String(notificationUnread)
-                                : item.badge}
+                              {item.badge}
                             </motion.span>
                           )}
                       </Link>

@@ -5,6 +5,7 @@ import SearchSection from "@/components/landingPage/SearchSection";
 import BrowseByType from "@/components/landingPage/BrowseByType";
 import FeaturedCars from "@/components/landingPage/FeaturedCars";
 import WhyChooseUs from "@/components/landingPage/WhyChooseUs";
+import LatestBlogNews from "@/components/landingPage/LatestBlogNews";
 import Testimonials from "@/components/landingPage/Testimonials";
 import Footer from "@/components/landingPage/Footer";
 import ContactPopup from "@/components/landingPage/ContactPopup";
@@ -41,6 +42,7 @@ export default async function Home() {
       <BrowseByType />
       <FeaturedCars />
       <WhyChooseUs />
+      <LatestBlogNews />
       <Testimonials />
       <Footer />
       <ContactPopup />
