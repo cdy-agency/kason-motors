@@ -192,7 +192,7 @@ export default async function BlogArticlePage({ params }: PageProps) {
                   className="flex flex-col gap-4 border-t border-line/20 pt-6 sm:flex-row sm:items-center"
                 >
                   {vehicle?.image && (
-                    <div className="relative h-24 w-36 shrink-0 overflow-hidden rounded-lg bg-gray-dark">
+                    <div className="relative h-24 w-36 shrink-0 overflow-hidden bg-gray-dark">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={vehicle.image}

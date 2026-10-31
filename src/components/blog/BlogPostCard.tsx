@@ -21,10 +21,10 @@ export default function BlogPostCard({
 
   return (
     <article
-      className={`group overflow-hidden rounded-2xl border shadow-sm transition hover:-translate-y-1 hover:shadow-lg ${
+      className={`group overflow-hidden border shadow-sm transition hover:-translate-y-1 hover:shadow-lg ${
         isDark
           ? "border-line/25 bg-gray-dark hover:border-primary/40"
-          : "border-gray-200 bg-white"
+          : "rounded-2xl border-gray-200 bg-white"
       } ${
         featured ? "grid md:grid-cols-2" : ""
       }`}

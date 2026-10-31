@@ -48,7 +48,7 @@ export default function BlogImageCarousel({ title, images }: Props) {
       aria-roledescription="carousel"
       className="min-w-0"
     >
-      <div className="relative overflow-hidden rounded-2xl border border-line/25 bg-ink shadow-xl shadow-black/20">
+      <div className="relative overflow-hidden border border-line/25 bg-ink shadow-xl shadow-black/20">
         <div
           ref={containerRef}
           onScroll={updateActiveIndex}
