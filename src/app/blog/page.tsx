@@ -49,29 +49,38 @@ export default async function BlogListingPage({ searchParams }: PageProps) {
   const pageCount = Math.ceil(listing.total / listing.pageSize);
 
   return (
-    <main className="min-h-screen bg-white text-gray-900">
+    <main className="min-h-screen bg-bg text-font">
       <Navbar />
-      <section className="bg-gray-dark px-4 py-16 text-center text-white sm:py-20">
-        <p className="text-sm font-bold uppercase tracking-[0.2em] text-primary-light">
-          The Kason Motors journal
-        </p>
-        <h1 className="mt-3 text-4xl font-extrabold sm:text-5xl">
-          Blog <span className="text-primary-light">&amp; News</span>
-        </h1>
-        <p className="mx-auto mt-4 max-w-2xl text-sm leading-6 text-white/65 sm:text-base">
-          Showroom arrivals, automotive stories, practical advice, and the latest
-          from our team.
-        </p>
+      <section className="relative overflow-hidden bg-gray-dark px-4 py-16 text-center sm:py-20">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(76,175,80,0.16),transparent_58%)]"
+        />
+        <div className="relative mx-auto max-w-3xl">
+          <p className="text-xs font-bold uppercase tracking-[0.22em] text-primary-light sm:text-sm">
+            The Kason Motors journal
+          </p>
+          <h1 className="mt-3 text-4xl font-extrabold text-font sm:text-5xl md:text-6xl">
+            Stories for the <span className="text-primary-light">road ahead</span>
+          </h1>
+          <p className="mx-auto mt-5 max-w-2xl text-sm leading-6 text-font/65 sm:text-base">
+            Showroom arrivals, automotive news, practical advice, and the latest
+            from our team.
+          </p>
+        </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
-        <nav aria-label="Filter articles by category" className="mb-9 flex flex-wrap gap-2">
+      <section className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-14 lg:px-8">
+        <nav
+          aria-label="Filter articles by category"
+          className="mb-9 flex gap-2 overflow-x-auto pb-2"
+        >
           <Link
             href="/blog"
-            className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+            className={`shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition ${
               !categorySlug
-                ? "border-primary bg-primary text-white"
-                : "border-gray-200 text-gray-600 hover:border-primary hover:text-primary"
+                ? "border-primary bg-primary text-font"
+                : "border-line/30 bg-gray-dark text-font/70 hover:border-primary-light hover:text-primary-light"
             }`}
           >
             All stories
@@ -80,10 +89,10 @@ export default async function BlogListingPage({ searchParams }: PageProps) {
             <Link
               key={category.id}
               href={pageUrl(1, category.slug)}
-              className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${
+              className={`shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition ${
                 categorySlug === category.slug
-                  ? "border-primary bg-primary text-white"
-                  : "border-gray-200 text-gray-600 hover:border-primary hover:text-primary"
+                  ? "border-primary bg-primary text-font"
+                  : "border-line/30 bg-gray-dark text-font/70 hover:border-primary-light hover:text-primary-light"
               }`}
             >
               {category.name}
@@ -92,18 +101,18 @@ export default async function BlogListingPage({ searchParams }: PageProps) {
         </nav>
 
         {categorySlug && !listing.category ? (
-          <p className="rounded-2xl bg-gray-50 px-6 py-12 text-center text-gray-600">
+          <p className="rounded-2xl border border-line/25 bg-gray-dark px-6 py-12 text-center text-font/70">
             This category does not exist or has no published stories.
           </p>
         ) : featuredPost ? (
           <>
             <div className="mb-10">
-              <BlogPostCard post={featuredPost} featured />
+              <BlogPostCard post={featuredPost} featured theme="dark" />
             </div>
             {remainingPosts.length > 0 && (
               <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {remainingPosts.map((post) => (
-                  <BlogPostCard key={post.id} post={post} />
+                  <BlogPostCard key={post.id} post={post} theme="dark" />
                 ))}
               </div>
             )}
@@ -115,18 +124,18 @@ export default async function BlogListingPage({ searchParams }: PageProps) {
                 {page > 1 && (
                   <Link
                     href={pageUrl(page - 1, categorySlug)}
-                    className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold hover:border-primary hover:text-primary"
+                    className="rounded-lg border border-line/30 bg-gray-dark px-4 py-2 text-sm font-semibold text-font/75 transition hover:border-primary-light hover:text-primary-light"
                   >
                     Previous
                   </Link>
                 )}
-                <span className="text-sm text-gray-500">
+                <span className="text-sm text-font/60">
                   Page {page} of {pageCount}
                 </span>
                 {page < pageCount && (
                   <Link
                     href={pageUrl(page + 1, categorySlug)}
-                    className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-semibold hover:border-primary hover:text-primary"
+                    className="rounded-lg border border-line/30 bg-gray-dark px-4 py-2 text-sm font-semibold text-font/75 transition hover:border-primary-light hover:text-primary-light"
                   >
                     Next
                   </Link>
@@ -135,9 +144,9 @@ export default async function BlogListingPage({ searchParams }: PageProps) {
             )}
           </>
         ) : (
-          <div className="rounded-2xl bg-gray-50 px-6 py-16 text-center">
-            <h2 className="text-xl font-bold text-gray-900">No stories yet</h2>
-            <p className="mt-2 text-sm text-gray-600">
+          <div className="rounded-2xl border border-line/25 bg-gray-dark px-6 py-16 text-center">
+            <h2 className="text-xl font-bold text-font">No stories yet</h2>
+            <p className="mt-2 text-sm text-font/65">
               Check back soon for news and updates from Kason Motors.
             </p>
           </div>
