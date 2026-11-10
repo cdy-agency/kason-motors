@@ -16,12 +16,14 @@ export const BRAND_OPTIONS = [
   "Leapmotor",
   "Wuling",
   "Changan",
+  "Foton",
 ] as const;
 
 export const CONDITION_OPTIONS = ["New", "Used", "Certified"] as const;
 
 export const BODY_TYPE_OPTIONS = [
   "Sedan",
+  "MPV",
   "SUV",
   "Hatchback",
   "Truck",

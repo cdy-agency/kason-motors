@@ -19,6 +19,7 @@ import {
   uploadVehicleVideo,
 } from "@/lib/uploadVehicleImages";
 import { VehicleFormData, vehicleFormSchema } from "@/lib/vehicleFormSchema";
+import { Select } from "@/components/ui/Select";
 import { EMPTY_FORM, FormErrors } from "@/types/car";
 import { useMemo, useRef, useState } from "react";
 
@@ -37,9 +38,7 @@ type SelectFieldProps = {
   value: string | undefined;
   options: readonly string[];
   error?: string;
-  onChange: (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => void;
+  onChange: (name: keyof VehicleFormData, value: string) => void;
 };
 
 type ColorFieldProps = {
@@ -83,25 +82,20 @@ function SelectField({
       <label className="block text-xs font-semibold text-gray-500 uppercase tracking-widest mb-1.5">
         {label}
       </label>
-      <div className="relative">
-        <select
-          name={name}
-          value={value ?? ""}
-          onChange={onChange}
-          className={`w-full bg-white border rounded-lg px-4 py-3 text-sm text-gray-700 focus:outline-none focus:ring-2 focus:border-transparent transition-all duration-200 shadow-sm appearance-none cursor-pointer ${
-            error
-              ? "border-red-400 focus:ring-red-400"
-              : "border-gray-200 focus:ring-primary hover:border-primary/50"
-          }`}
-        >
-          <option value="">{`Select ${label}`}</option>
-          {options.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
-      </div>
+      <Select
+        name={name}
+        ariaLabel={label.replace(/\s*\*$/, "")}
+        value={value ?? ""}
+        options={options.map((option) => ({ value: option, label: option }))}
+        onValueChange={(selectedValue) => onChange(name, selectedValue)}
+        placeholder={`Select ${label.replace(/\s*\*$/, "")}`}
+        variant="light"
+        className={`px-4 py-3 shadow-sm ${
+          error
+            ? "border-red-400 focus:ring-red-400"
+            : "hover:border-primary/50"
+        }`}
+      />
       {error ? <p className="mt-1.5 text-xs text-red-500">{error}</p> : null}
     </div>
   );
@@ -237,6 +231,16 @@ export default function VehicleFormWizard({
     setForm((prev) => ({ ...prev, [name]: value }));
     if (submitted) {
       validateField(name as keyof VehicleFormData, value);
+    }
+  };
+
+  const handleSelectChange = (
+    name: keyof VehicleFormData,
+    value: string,
+  ) => {
+    setForm((prev) => ({ ...prev, [name]: value }));
+    if (submitted) {
+      validateField(name, value);
     }
   };
 
@@ -427,6 +431,7 @@ export default function VehicleFormWizard({
               name="title"
               value={form.title}
               onChange={handleChange}
+              placeholder="e.g. Toyota Land Cruiser VX"
               className={inputClass("title")}
             />
             {errors.title ? (
@@ -439,7 +444,7 @@ export default function VehicleFormWizard({
             value={form.brand}
             options={BRAND_OPTIONS}
             error={errors.brand}
-            onChange={handleChange}
+            onChange={handleSelectChange}
           />
           <div>
             <label className="block text-xs font-semibold text-gray-500 uppercase tracking-widest mb-1.5">
@@ -449,6 +454,7 @@ export default function VehicleFormWizard({
               name="model"
               value={form.model}
               onChange={handleChange}
+              placeholder="e.g. Land Cruiser"
               className={inputClass("model")}
             />
             {errors.model ? (
@@ -463,6 +469,7 @@ export default function VehicleFormWizard({
               name="year"
               value={form.year}
               onChange={handleChange}
+              placeholder="e.g. 2022"
               className={inputClass("year")}
             />
             {errors.year ? (
@@ -475,7 +482,7 @@ export default function VehicleFormWizard({
             value={form.condition}
             options={CONDITION_OPTIONS}
             error={errors.condition}
-            onChange={handleChange}
+            onChange={handleSelectChange}
           />
           <SelectField
             label="Body Type *"
@@ -483,7 +490,7 @@ export default function VehicleFormWizard({
             value={form.bodyType}
             options={BODY_TYPE_OPTIONS}
             error={errors.bodyType}
-            onChange={handleChange}
+            onChange={handleSelectChange}
           />
           <div>
             <label className="block text-xs font-semibold text-gray-500 uppercase tracking-widest mb-1.5">
@@ -518,7 +525,7 @@ export default function VehicleFormWizard({
             value={form.fuel}
             options={FUEL_OPTIONS}
             error={errors.fuel}
-            onChange={handleChange}
+            onChange={handleSelectChange}
           />
           <SelectField
             label="Transmission *"
@@ -526,7 +533,7 @@ export default function VehicleFormWizard({
             value={form.transmission}
             options={TRANSMISSION_OPTIONS}
             error={errors.transmission}
-            onChange={handleChange}
+            onChange={handleSelectChange}
           />
 
           {/* Row 2: Drive Type | Mileage */}
@@ -536,7 +543,7 @@ export default function VehicleFormWizard({
             value={form.driveType}
             options={DRIVE_TYPE_OPTIONS}
             error={errors.driveType}
-            onChange={handleChange}
+            onChange={handleSelectChange}
           />
           <div>
             <label className="block text-xs font-semibold text-gray-500 uppercase tracking-widest mb-1.5">
@@ -567,6 +574,7 @@ export default function VehicleFormWizard({
               name="horsepower"
               value={form.horsepower ?? ""}
               onChange={handleChange}
+              placeholder="e.g. 150"
               className={inputClass("horsepower")}
             />
             {errors.horsepower ? (
@@ -621,7 +629,7 @@ export default function VehicleFormWizard({
             value={form.doors}
             options={DOOR_OPTIONS}
             error={errors.doors}
-            onChange={handleChange}
+            onChange={handleSelectChange}
           />
           <SelectField
             label="Seats (Optional)"
@@ -629,7 +637,7 @@ export default function VehicleFormWizard({
             value={form.seats}
             options={SEAT_OPTIONS}
             error={errors.seats}
-            onChange={handleChange}
+            onChange={handleSelectChange}
           />
         </div>
       ) : null}
@@ -646,6 +654,7 @@ export default function VehicleFormWizard({
                 name="price"
                 value={form.price}
                 onChange={handleChange}
+                placeholder="e.g. 25,000,000 RWF"
                 className={inputClass("price")}
               />
               {errors.price ? (
@@ -658,7 +667,7 @@ export default function VehicleFormWizard({
               value={form.badge ?? ""}
               options={BADGE_OPTIONS}
               error={errors.badge}
-              onChange={handleChange}
+              onChange={handleSelectChange}
             />
           </div>
 
@@ -713,6 +722,7 @@ export default function VehicleFormWizard({
               name="description"
               value={form.description}
               onChange={handleChange}
+              placeholder="Describe the vehicle's condition, history, and key details."
               className={inputClass("description")}
               rows={4}
             />
@@ -732,6 +742,9 @@ export default function VehicleFormWizard({
               onChange={handleVideoChange}
               className={inputClass("videoUrl")}
             />
+            <p className="mt-1.5 text-xs text-gray-400">
+              Choose a vehicle walkaround or feature video.
+            </p>
             {selectedVideoName ? (
               <div className="mt-2 space-y-2">
                 <div className="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 text-xs text-gray-600">

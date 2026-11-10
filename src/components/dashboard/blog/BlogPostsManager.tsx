@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { Plus, Search, Trash2, Pencil, FolderOpen } from "lucide-react";
 
+import { Select } from "@/components/ui/Select";
 import type { Database } from "@/types/database";
 
 type Category = Database["public"]["Tables"]["blog_categories"]["Row"];
@@ -142,37 +143,40 @@ export default function BlogPostsManager() {
           </form>
           <label className="flex items-center gap-2 text-sm text-gray-600">
             <span className="sr-only">Filter by category</span>
-            <select
+            <Select
               value={categoryId}
-              onChange={(event) => {
-                setCategoryId(event.target.value);
+              ariaLabel="Filter by category"
+              onValueChange={(value) => {
+                setCategoryId(value);
                 setPage(1);
               }}
-              className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 outline-none focus:border-primary"
-            >
-              <option value="">All categories</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
+              placeholder="All categories"
+              options={categories.map((category) => ({
+                value: category.id,
+                label: category.name,
+              }))}
+              variant="light"
+              className="min-w-40"
+            />
           </label>
           <label className="flex items-center gap-2 text-sm text-gray-600">
             <span className="sr-only">Filter by status</span>
-            <select
+            <Select
               value={status}
-              onChange={(event) => {
-                setStatus(event.target.value);
+              ariaLabel="Filter by status"
+              onValueChange={(value) => {
+                setStatus(value);
                 setPage(1);
               }}
-              className="rounded-lg border border-gray-200 bg-white px-3 py-2.5 outline-none focus:border-primary"
-            >
-              <option value="">All statuses</option>
-              <option value="DRAFT">Draft</option>
-              <option value="PUBLISHED">Published</option>
-              <option value="ARCHIVED">Archived</option>
-            </select>
+              placeholder="All statuses"
+              options={[
+                { value: "DRAFT", label: "Draft" },
+                { value: "PUBLISHED", label: "Published" },
+                { value: "ARCHIVED", label: "Archived" },
+              ]}
+              variant="light"
+              className="min-w-36"
+            />
           </label>
         </div>
       </div>

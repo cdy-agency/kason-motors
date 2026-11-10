@@ -18,6 +18,7 @@ import {
 
 import BlogArticlePreview from "@/components/dashboard/blog/BlogArticlePreview";
 import BlogRichTextEditor from "@/components/dashboard/blog/BlogRichTextEditor";
+import { Select } from "@/components/ui/Select";
 import type { Database } from "@/types/database";
 
 type Category = Database["public"]["Tables"]["blog_categories"]["Row"];
@@ -578,37 +579,42 @@ export default function BlogPostEditor({ postId, isNew, authorName }: Props) {
                   <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500">
                     Status
                   </span>
-                  <select
+                  <Select
+                    ariaLabel="Article status"
                     value={values.status}
-                    onChange={(event) =>
-                      updateValue("status", event.target.value as FormValues["status"])
-                    }
-                    className={`w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-primary ${
-                      values.status ? "text-gray-900" : "text-gray-600"
-                    }`}
-                  >
-                    <option value="" disabled className="text-gray-600">Choose a status</option>
-                    <option value="DRAFT">Draft</option>
-                    <option value="PUBLISHED">Published</option>
-                    <option value="ARCHIVED">Archived</option>
-                  </select>
+                    onValueChange={(value) => {
+                      if (
+                        value === "DRAFT" ||
+                        value === "PUBLISHED" ||
+                        value === "ARCHIVED"
+                      ) {
+                        updateValue("status", value);
+                      }
+                    }}
+                    placeholder="Choose a status"
+                    options={[
+                      { value: "DRAFT", label: "Draft" },
+                      { value: "PUBLISHED", label: "Published" },
+                      { value: "ARCHIVED", label: "Archived" },
+                    ]}
+                    variant="light"
+                  />
                 </label>
                 <label className="block">
                   <span className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-gray-500">
                     Category
                   </span>
-                  <select
+                  <Select
+                    ariaLabel="Article category"
                     value={values.categoryId}
-                    onChange={(event) => updateValue("categoryId", event.target.value)}
-                    className={`w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-primary ${
-                      values.categoryId ? "text-gray-900" : "text-gray-600"
-                    }`}
-                  >
-                    <option value="" className="text-gray-600">Choose a category</option>
-                    {categories.map((category) => (
-                      <option key={category.id} value={category.id}>{category.name}</option>
-                    ))}
-                  </select>
+                    onValueChange={(value) => updateValue("categoryId", value)}
+                    placeholder="Choose a category"
+                    options={categories.map((category) => ({
+                      value: category.id,
+                      label: category.name,
+                    }))}
+                    variant="light"
+                  />
                   {categories.length === 0 && (
                     <Link href="/admin/blog/categories" className="mt-2 inline-block text-xs font-semibold text-primary hover:underline">
                       Add a category first

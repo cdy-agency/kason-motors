@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { Select } from "@/components/ui/Select";
 
 type ResultsHeaderProps = {
   count: number;
@@ -31,17 +32,16 @@ export const ResultsHeader: React.FC<ResultsHeaderProps> = ({
           placeholder="Search by title, brand, model..."
           className="min-h-[44px] w-full min-w-0 rounded-lg border border-line/30 bg-gray-dark px-3 py-2.5 text-base text-font placeholder:text-gray-mid focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 sm:min-h-0 sm:max-w-md sm:flex-1 sm:py-2 sm:text-sm lg:w-72 lg:flex-none"
         />
-        <select
+        <Select
+          ariaLabel="Sort inventory"
           value={sort}
-          onChange={(event) => onSortChange(event.target.value)}
-          className="min-h-[44px] w-full shrink-0 rounded-lg border border-line/30 bg-gray-dark px-3 py-2.5 text-base text-font focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 sm:min-h-0 sm:w-auto sm:min-w-[11rem] sm:py-2 sm:text-sm"
-        >
-          {SORT_OPTIONS.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
+          onValueChange={onSortChange}
+          options={SORT_OPTIONS.map((option) => ({
+            value: option,
+            label: option,
+          }))}
+          className="min-h-[44px] w-full shrink-0 sm:min-h-0 sm:w-auto sm:min-w-[11rem] sm:py-2 sm:text-sm"
+        />
       </div>
     </div>
   );

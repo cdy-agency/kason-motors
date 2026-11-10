@@ -7,11 +7,11 @@ import {
   Search,
   SlidersHorizontal,
   RotateCcw,
-  ChevronDown,
   Car,
   DollarSign,
   Gauge,
 } from "lucide-react";
+import { Select } from "@/components/ui/Select";
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
@@ -94,21 +94,18 @@ function SelectField({
         </span>
       </div>
       <div className="flex items-center justify-between">
-        <select
+        <Select
+          ariaLabel={label}
           value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onFocus={onFocus}
-          className="w-full bg-transparent text-sm font-semibold text-font appearance-none cursor-pointer focus:outline-none pr-4"
-        >
-          {options.map((opt) => (
-            <option key={opt} value={opt}>
-              {opt}
-            </option>
-          ))}
-        </select>
-        <ChevronDown
-          size={14}
-          className={`shrink-0 transition-all ${active ? "text-primary rotate-180" : "text-gray-mid"}`}
+          options={options.map((option) => ({
+            value: option,
+            label: option,
+          }))}
+          onValueChange={onChange}
+          onOpenChange={(open) => {
+            if (open) onFocus();
+          }}
+          className="!border-0 !bg-transparent !px-0 !py-0 pr-2 text-sm font-semibold text-font shadow-none focus:!ring-0"
         />
       </div>
       {/* Active accent bar */}

@@ -9,6 +9,7 @@ import {
   FUEL_OPTIONS,
   TRANSMISSION_OPTIONS,
 } from "@/components/dashboard/listings/vehicleFormOptions";
+import { Select } from "@/components/ui/Select";
 import { ChevronDown } from "lucide-react";
 import React from "react";
 import type { InventoryFilters } from "./Carlistingpage";
@@ -485,20 +486,21 @@ export function InventoryFiltersPanel({
             ) : null}
           </div>
           {expanded.negotiable ? (
-            <select
+            <Select
+              ariaLabel="Filter by negotiable"
               value={filters.negotiable}
-              onChange={(event) =>
-                onFiltersChange({
-                  ...filters,
-                  negotiable: event.target.value as InventoryFilters["negotiable"],
-                })
-              }
-              className="min-h-[44px] w-full rounded-lg border border-line/30 bg-bg px-3 py-2.5 text-base text-font focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30 sm:min-h-0 sm:py-2 sm:text-sm"
-            >
-              <option value="all">All</option>
-              <option value="yes">Yes</option>
-              <option value="no">No</option>
-            </select>
+              onValueChange={(value) => {
+                if (value === "all" || value === "yes" || value === "no") {
+                  onFiltersChange({ ...filters, negotiable: value });
+                }
+              }}
+              options={[
+                { value: "all", label: "All" },
+                { value: "yes", label: "Yes" },
+                { value: "no", label: "No" },
+              ]}
+              className="min-h-[44px] sm:min-h-0 sm:py-2 sm:text-sm"
+            />
           ) : null}
         </div>
 

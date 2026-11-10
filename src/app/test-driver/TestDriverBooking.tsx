@@ -8,6 +8,7 @@ import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import Navbar from "@/components/landingPage/Navbar";
 import Footer from "@/components/landingPage/Footer";
+import { DatePicker } from "@/components/ui/DatePicker";
 
 type CarSummary = {
   id: number;
@@ -329,6 +330,7 @@ export default function TestDriverBooking() {
               value={form.fullName}
               onChange={handleChange}
               className={inputClass("fullName")}
+              placeholder="Your full name"
               autoComplete="name"
             />
             {errors.fullName ? (
@@ -345,6 +347,7 @@ export default function TestDriverBooking() {
               value={form.email}
               onChange={handleChange}
               className={inputClass("email")}
+              placeholder="you@example.com"
               autoComplete="email"
             />
             {errors.email ? (
@@ -372,13 +375,17 @@ export default function TestDriverBooking() {
             <label className="mb-1 block text-xs font-medium text-font/85">
               Preferred date
             </label>
-            <input
-              name="preferredDate"
-              type="date"
-              min={todayIsoDate()}
+            <DatePicker
               value={form.preferredDate}
-              onChange={handleChange}
-              className={inputClass("preferredDate")}
+              onChange={(preferredDate) =>
+                setForm((current) => ({ ...current, preferredDate }))
+              }
+              minDate={new Date(`${todayIsoDate()}T00:00:00`)}
+              placeholder="Choose a preferred date"
+              ariaLabel="Preferred date"
+              className={
+                errors.preferredDate ? "border-primary" : "border-line/30"
+              }
             />
             {errors.preferredDate ? (
               <p className="mt-1 text-xs text-accent">{errors.preferredDate}</p>
