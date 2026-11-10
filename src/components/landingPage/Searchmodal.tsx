@@ -12,6 +12,10 @@ import {
   Gauge,
 } from "lucide-react";
 import { Select } from "@/components/ui/Select";
+import {
+  BODY_TYPE_OPTIONS,
+  BRAND_OPTIONS,
+} from "@/components/dashboard/listings/vehicleFormOptions";
 
 // ─── Data ────────────────────────────────────────────────────────────────────
 
@@ -234,9 +238,12 @@ export default function SearchModal({
     "All Makes",
     ...Array.from(
       new Set(
-        allCars
-          .map((car) => (car.brand || "").trim())
-          .filter((brand) => brand.length > 0),
+        [
+          ...BRAND_OPTIONS,
+          ...allCars
+            .map((car) => (car.brand || "").trim())
+            .filter((brand) => brand.length > 0),
+        ],
       ),
     ).sort((a, b) => a.localeCompare(b)),
   ];
@@ -261,9 +268,12 @@ export default function SearchModal({
     "All Body Types",
     ...Array.from(
       new Set(
-        allCars
-          .map((car) => (car.body_type || "").trim())
-          .filter((type) => type.length > 0),
+        [
+          ...BODY_TYPE_OPTIONS,
+          ...allCars
+            .map((car) => (car.body_type || "").trim())
+            .filter((type) => type.length > 0),
+        ],
       ),
     ).sort((a, b) => a.localeCompare(b)),
   ];

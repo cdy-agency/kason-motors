@@ -2,16 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState, type KeyboardEvent } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
-  CarFront,
-  ChevronDown,
   Eye,
   ImagePlus,
   Pencil,
   RotateCcw,
   Save,
-  Search,
   Send,
   X,
 } from "lucide-react";
@@ -88,7 +85,6 @@ const responseError = (body: { error?: string }, fallback: string) =>
 export default function BlogPostEditor({ postId, isNew, authorName }: Props) {
   const router = useRouter();
   const galleryInput = useRef<HTMLInputElement>(null);
-  const vehiclePickerRef = useRef<HTMLDivElement>(null);
   const [values, setValues] = useState<FormValues>(emptyValues);
   const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -104,35 +100,10 @@ export default function BlogPostEditor({ postId, isNew, authorName }: Props) {
   const [notice, setNotice] = useState("");
   const [previewing, setPreviewing] = useState(false);
   const [slugManual, setSlugManual] = useState(false);
-  const [vehiclePickerOpen, setVehiclePickerOpen] = useState(false);
-  const [vehicleSearch, setVehicleSearch] = useState("");
-  const [highlightedVehicleIndex, setHighlightedVehicleIndex] = useState(0);
 
-  const selectedVehicle =
-    vehicles.find((vehicle) => String(vehicle.id) === values.vehicleId) ?? null;
   const vehicleLabel = (vehicle: VehicleOption) =>
     [vehicle.name, vehicle.year, vehicle.category].filter(Boolean).join(" · ") ||
     `Vehicle ${vehicle.id}`;
-  const filteredVehicles = vehicles.filter((vehicle) =>
-    vehicleLabel(vehicle).toLowerCase().includes(vehicleSearch.trim().toLowerCase()),
-  );
-
-  useEffect(() => {
-    if (!vehiclePickerOpen) return;
-
-    const closeOnOutsideClick = (event: PointerEvent) => {
-      if (
-        event.target instanceof Node &&
-        !vehiclePickerRef.current?.contains(event.target)
-      ) {
-        setVehiclePickerOpen(false);
-        setVehicleSearch("");
-      }
-    };
-
-    document.addEventListener("pointerdown", closeOnOutsideClick);
-    return () => document.removeEventListener("pointerdown", closeOnOutsideClick);
-  }, [vehiclePickerOpen]);
 
   useEffect(() => {
     let active = true;
@@ -241,50 +212,6 @@ export default function BlogPostEditor({ postId, isNew, authorName }: Props) {
 
   const updateValue = <K extends keyof FormValues>(key: K, value: FormValues[K]) => {
     setValues((current) => ({ ...current, [key]: value }));
-  };
-
-  const selectVehicle = (vehicle: VehicleOption | null) => {
-    updateValue("vehicleId", vehicle ? String(vehicle.id) : "");
-    setVehiclePickerOpen(false);
-    setVehicleSearch("");
-    setHighlightedVehicleIndex(0);
-  };
-
-  const handleVehiclePickerKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Escape") {
-      setVehiclePickerOpen(false);
-      setVehicleSearch("");
-      return;
-    }
-
-    if (event.key === "ArrowDown") {
-      event.preventDefault();
-      if (!vehiclePickerOpen) {
-        setVehiclePickerOpen(true);
-        setHighlightedVehicleIndex(0);
-        return;
-      }
-      setVehiclePickerOpen(true);
-      setHighlightedVehicleIndex((current) =>
-        filteredVehicles.length > 0
-          ? Math.min(current + 1, filteredVehicles.length - 1)
-          : 0,
-      );
-      return;
-    }
-
-    if (event.key === "ArrowUp") {
-      event.preventDefault();
-      setVehiclePickerOpen(true);
-      setHighlightedVehicleIndex((current) => Math.max(0, current - 1));
-      return;
-    }
-
-    if (event.key === "Enter" && vehiclePickerOpen) {
-      event.preventDefault();
-      const vehicle = filteredVehicles[highlightedVehicleIndex];
-      if (vehicle) selectVehicle(vehicle);
-    }
   };
 
   const uploadGalleryImages = async (files: File[]) => {
@@ -737,114 +664,28 @@ export default function BlogPostEditor({ postId, isNew, authorName }: Props) {
 
               <section className="space-y-3 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
                 <h2 className="font-bold text-gray-900">Related vehicle</h2>
-                <div ref={vehiclePickerRef} className="relative">
-                  <div className="relative">
-                    <Search
-                      size={16}
-                      className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
-                    />
-                    <input
-                      type="text"
-                      role="combobox"
-                      aria-label="Search related vehicles"
-                      aria-autocomplete="list"
-                      aria-expanded={vehiclePickerOpen}
-                      aria-controls="related-vehicle-options"
-                      aria-activedescendant={
-                        vehiclePickerOpen && filteredVehicles[highlightedVehicleIndex]
-                          ? `related-vehicle-${filteredVehicles[highlightedVehicleIndex].id}`
-                          : undefined
-                      }
-                      value={
-                        vehiclePickerOpen
-                          ? vehicleSearch
-                          : selectedVehicle
-                            ? vehicleLabel(selectedVehicle)
-                            : ""
-                      }
-                      onFocus={() => {
-                        setVehiclePickerOpen(true);
-                        setVehicleSearch("");
-                        setHighlightedVehicleIndex(0);
-                      }}
-                      onClick={() => {
-                        if (!vehiclePickerOpen) {
-                          setVehiclePickerOpen(true);
-                          setVehicleSearch("");
-                          setHighlightedVehicleIndex(0);
-                        }
-                      }}
-                      onChange={(event) => {
-                        setVehicleSearch(event.target.value);
-                        setHighlightedVehicleIndex(0);
-                        setVehiclePickerOpen(true);
-                      }}
-                      onKeyDown={handleVehiclePickerKeyDown}
-                      placeholder="Search vehicles by name, year, or make"
-                      className="w-full rounded-lg border border-gray-200 bg-white py-2.5 pl-9 pr-9 text-sm text-gray-900 outline-none placeholder:text-gray-500 focus:border-primary focus:ring-2 focus:ring-primary/10"
-                    />
-                    <ChevronDown
-                      size={16}
-                      className={`pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 transition ${
-                        vehiclePickerOpen ? "rotate-180" : ""
-                      }`}
-                    />
-                  </div>
-
-                  {vehiclePickerOpen && (
-                    <ul
-                      id="related-vehicle-options"
-                      role="listbox"
-                      aria-label="Available vehicles"
-                      className="absolute z-30 mt-1 max-h-60 w-full overflow-y-auto rounded-xl border border-gray-200 bg-white p-1.5 shadow-xl"
-                    >
-                      <li>
-                        <button
-                          type="button"
-                          role="option"
-                          aria-selected={!values.vehicleId}
-                          onClick={() => selectVehicle(null)}
-                          className={`w-full rounded-lg px-3 py-2.5 text-left text-sm transition ${
-                            !values.vehicleId
-                              ? "bg-primary/10 font-semibold text-primary"
-                              : "text-gray-700 hover:bg-gray-50"
-                          }`}
-                        >
-                          No vehicle linked
-                        </button>
-                      </li>
-                      {filteredVehicles.map((vehicle, index) => (
-                        <li key={vehicle.id}>
-                          <button
-                            id={`related-vehicle-${vehicle.id}`}
-                            type="button"
-                            role="option"
-                            aria-selected={values.vehicleId === String(vehicle.id)}
-                            onMouseEnter={() => setHighlightedVehicleIndex(index)}
-                            onClick={() => selectVehicle(vehicle)}
-                            className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition ${
-                              values.vehicleId === String(vehicle.id)
-                                ? "bg-primary/10 font-semibold text-primary"
-                                : index === highlightedVehicleIndex
-                                  ? "bg-gray-100 text-gray-900"
-                                  : "text-gray-700 hover:bg-gray-50"
-                            }`}
-                          >
-                            <CarFront size={17} className="shrink-0 text-gray-400" />
-                            <span className="truncate">{vehicleLabel(vehicle)}</span>
-                          </button>
-                        </li>
-                      ))}
-                      {filteredVehicles.length === 0 && (
-                        <li className="px-3 py-3 text-sm text-gray-500">
-                          {vehicles.length === 0
-                            ? "No vehicles are available in the inventory."
-                            : "No vehicles match your search."}
-                        </li>
-                      )}
-                    </ul>
-                  )}
-                </div>
+                <Select
+                  ariaLabel="Related vehicle"
+                  value={values.vehicleId}
+                  onValueChange={(vehicleId) => updateValue("vehicleId", vehicleId)}
+                  placeholder="No vehicle linked"
+                  searchPlaceholder="Search vehicles by name, year, or make"
+                  options={[
+                    { value: "", label: "No vehicle linked" },
+                    ...vehicles.map((vehicle) => ({
+                      value: String(vehicle.id),
+                      label: vehicleLabel(vehicle),
+                    })),
+                  ]}
+                  variant="light"
+                  className="py-2.5"
+                  contentClassName="max-h-72"
+                />
+                {vehicles.length === 0 && !vehicleError ? (
+                  <p className="text-xs text-gray-500">
+                    No vehicles are available in the inventory.
+                  </p>
+                ) : null}
                 {vehicleError && (
                   <p role="alert" className="text-xs text-amber-700">{vehicleError}</p>
                 )}
