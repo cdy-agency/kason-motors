@@ -153,6 +153,25 @@ export type Database = {
         Relationships: [];
       };
 
+      hero_settings: {
+        Row: {
+          id: string;
+          slides: Json;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          slides?: Json;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          slides?: Json;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+
       blog_post_tags: {
         Row: {
           post_id: string;

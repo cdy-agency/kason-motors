@@ -3,95 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
-import {
-  readVehicleListCache,
-  writeVehicleListCache,
-} from "@/lib/vehiclesListCache";
-
-type HeroSlide = {
-  id: number;
-  title: string;
-  car: string;
-  price: string;
-  period: string;
-  description: string;
-  image: string;
-};
-
-type Vehicle = {
-  id: number;
-  title?: string;
-  brand?: string;
-  model?: string;
-  year?: number | string;
-  body_type?: string;
-  fuel?: string;
-  price?: number | string;
-  image?: string;
-  image_urls?: string[];
-};
-
-const fallbackSlides: HeroSlide[] = [
-  {
-    id: 1,
-    title: "LIMITED EDITION",
-    car: "PORSCHE CAYENNE",
-    price: "625,000 RWF",
-    period: "/ Month",
-    description: "0 RWF first payment. Taxes, title and fees extra.",
-    image:
-      "https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1920&q=80",
-  },
-  {
-    id: 2,
-    title: "NEW ARRIVAL",
-    car: "LAND CRUISER 2024",
-    price: "850,000 RWF",
-    period: "/ Month",
-    description: "Premium SUV. Built for every terrain.",
-    image:
-      "https://images.unsplash.com/photo-1594502184342-2e12f877aa73?w=1920&q=80",
-  },
-  {
-    id: 3,
-    title: "BEST SELLER",
-    car: "BMW X5 M-SPORT",
-    price: "720,000 RWF",
-    period: "/ Month",
-    description: "Performance meets luxury. Drive the difference.",
-    image:
-      "https://images.unsplash.com/photo-1555215695-3004980ad54e?w=1920&q=80",
-  },
-];
-
-function buildSlidesFromVehicles(data: Vehicle[]): HeroSlide[] {
-  const sorted = [...data].sort((a, b) => {
-    const priceA = Number(String(a.price || 0).replace(/,/g, ""));
-    const priceB = Number(String(b.price || 0).replace(/,/g, ""));
-    return priceB - priceA; // highest to lowest
-  });
-
-  return sorted.slice(0, 4).map((car) => {
-    const name =
-      car.title ||
-      `${car?.brand || ""} ${car?.model || ""} ${car?.year || ""}`.trim() ||
-      "Featured Vehicle";
-
-    const details = [car?.year, car?.body_type, car?.fuel]
-      .filter(Boolean)
-      .join(" · ");
-
-    return {
-      id: car.id,
-      title: "",
-      car: name.toUpperCase(),
-      price: `${Number(String(car?.price || 0).replace(/,/g, "")).toLocaleString()} RWF`,
-      period: "",
-      description: details || "Recently added vehicle.",
-      image: car?.image_urls?.[0] || car?.image || fallbackSlides[0].image,
-    };
-  });
-}
+import type { HeroSlide } from "@/lib/hero";
 
 export default function Hero() {
   const ref = useRef(null);
@@ -108,43 +20,25 @@ export default function Hero() {
 
   useEffect(() => {
     const loadSlides = async () => {
-      const cached = readVehicleListCache<Vehicle>();
-      if (cached?.length) {
-        const cachedSlides = buildSlidesFromVehicles(cached);
-        setSlides(cachedSlides.length > 0 ? cachedSlides : fallbackSlides);
-        setCurrent(0);
-        setIsLoading(false);
-        return;
-      }
-
       try {
-        const response = await fetch("/api/vehicles/getList");
-        const result = await response.json();
-        if (!response.ok || !result.success || !Array.isArray(result.data)) {
-          setSlides(fallbackSlides);
-          return;
+        const response = await fetch("/api/hero");
+        const result = (await response.json()) as {
+          slides?: HeroSlide[];
+          error?: string;
+        };
+        if (!response.ok || !Array.isArray(result.slides)) {
+          throw new Error(result.error || "Failed to load hero banners.");
         }
-        const vehicles = result.data as Vehicle[];
-        writeVehicleListCache(vehicles);
-        const liveSlides = buildSlidesFromVehicles(vehicles);
-
-        if (liveSlides.length > 0) {
-          setSlides(liveSlides);
-          setCurrent(0);
-          return;
-        }
-
-        // API succeeded but has no usable cars; keep a stable hero.
-        setSlides(fallbackSlides);
-      } catch {
-        // Show fallback content only if we genuinely cannot fetch data.
-        setSlides(fallbackSlides);
+        setSlides(result.slides);
+      } catch (loadError) {
+        console.error("Failed to load landing page hero banners", loadError);
+        setSlides([]);
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadSlides();
+    void loadSlides();
   }, []);
 
   useEffect(() => {
@@ -183,6 +77,8 @@ export default function Hero() {
     );
   }
 
+  if (slides.length === 0) return null;
+
   return (
     <section
       ref={ref}
@@ -191,7 +87,7 @@ export default function Hero() {
       <motion.div style={{ y }} className="absolute inset-0 scale-110">
         {slides.map((item, index) => (
           <motion.div
-            key={`${item.id}-${item.car}`}
+            key={item.id}
             initial={{ opacity: 0 }}
             animate={{ opacity: index === current ? 1 : 0 }}
             transition={{ duration: 1.2 }}
@@ -232,7 +128,7 @@ export default function Hero() {
             </span>
             <span className="text-lg text-white/70">{slide?.period}</span>
           </div>
-          <p className="mb-8 max-w-sm text-sm text-white/60">
+          <p className="mb-8 max-w-sm text-sm text-white/90">
             {slide?.description}
           </p>
         </motion.div>
@@ -240,7 +136,7 @@ export default function Hero() {
         <div className="mt-8 flex gap-2 md:mt-10">
           {slides.map((item, index) => (
             <button
-              key={`${item.id}-${item.car}-dot`}
+              key={`${item.id}-dot`}
               onClick={() => setCurrent(index)}
               className={`h-1 rounded-full transition-all duration-500 ${
                 index === current ? "w-8 bg-primary-light" : "w-3 bg-white/40"

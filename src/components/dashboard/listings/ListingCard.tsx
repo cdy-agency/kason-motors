@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Car, formatMileage, normalizeCarImages } from "@/types/car";
 import { useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight, Plus, Search, X } from "lucide-react";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
@@ -18,11 +19,14 @@ type CachedCarsPayload = {
 export default function VehicleList() {
   const [cars, setCars] = useState<Car[]>([]);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [deleteId, setDeleteId] = useState<number | null>(null);
   const [stockEdits, setStockEdits] = useState<Record<number, string>>({});
   const [stockSavingId, setStockSavingId] = useState<number | null>(null);
   const [stockSellingId, setStockSellingId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
   const readCachedCars = () => {
     try {
@@ -141,18 +145,25 @@ export default function VehicleList() {
         }
 
         const response = await fetch("/api/vehicles/getList");
-        const result = await response.json();
+        const result = (await response.json()) as {
+          success?: boolean;
+          data?: Car[];
+          message?: string;
+        };
 
-        if (result.success) {
+        if (response.ok && result.success && Array.isArray(result.data)) {
           setCars(result.data);
           writeCachedCars(result.data);
           setIsLoading(false);
           return;
         }
 
-        console.log(result.message);
+        throw new Error(result.message || "Failed to load vehicles.");
       } catch (error) {
-        console.error("Error fetching cars:", error);
+        const message =
+          error instanceof Error ? error.message : "Failed to load vehicles.";
+        setLoadError(message);
+        toast.error(message, { position: "top-right", autoClose: 4000 });
       } finally {
         setIsLoading(false);
       }
@@ -203,11 +214,61 @@ export default function VehicleList() {
     }
   };
 
-  const filteredCars = cars.filter((car) =>
-    `${car.name} ${car.category} ${car.type} ${car.fuel} ${car.badge}`
-      .toLowerCase()
-      .includes(search.toLowerCase())
+  const normalizeSearchText = (value: string) =>
+    value
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .toLocaleLowerCase()
+      .trim();
+
+  const searchTerms = normalizeSearchText(search).split(/\s+/).filter(Boolean);
+  const filteredCars = cars.filter((car) => {
+    const searchableText = normalizeSearchText(
+      [
+        car.title,
+        car.brand,
+        car.model,
+        car.name,
+        car.category,
+        car.type,
+        car.condition,
+        car.bodyType,
+        car.driveType,
+        car.year,
+        car.price,
+        car.mileage,
+        car.stock_count,
+        car.stockCount,
+        car.fuel,
+        car.transmission,
+        car.badge,
+        car.exteriorColor,
+        car.interiorColor,
+        car.description,
+        ...(Array.isArray(car.features) ? car.features : []),
+      ]
+        .filter((value) => value !== null && value !== undefined)
+        .join(" "),
+    );
+
+    return searchTerms.every((term) => searchableText.includes(term));
+  });
+  const pageCount = Math.max(1, Math.ceil(filteredCars.length / pageSize));
+  const currentPage = Math.min(page, pageCount);
+  const pageStart = (currentPage - 1) * pageSize;
+  const paginatedCars = filteredCars.slice(pageStart, pageStart + pageSize);
+  const firstVisiblePage = Math.max(
+    1,
+    Math.min(currentPage - 2, pageCount - 4),
   );
+  const visiblePages = Array.from(
+    { length: Math.min(pageCount, 5) },
+    (_, index) => firstVisiblePage + index,
+  );
+
+  useEffect(() => {
+    if (page !== currentPage) setPage(currentPage);
+  }, [currentPage, page]);
 
   const primaryImageFor = (car: Car) =>
     normalizeCarImages(car.image, car.image_urls ?? car.imageUrls)[0];
@@ -217,11 +278,11 @@ export default function VehicleList() {
       <ToastContainer />
 
       <div className="max-w-7xl mx-auto">
-        <div className="mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="mb-6 flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
-                Vehicle Inventory
+              <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+                Vehicles
               </h1>
               <p className="text-sm text-gray-500">
                 {cars.length} vehicle{cars.length !== 1 ? "s" : ""} listed
@@ -229,30 +290,82 @@ export default function VehicleList() {
             </div>
           </div>
 
-          <div className="relative w-full sm:w-72">
-            <svg
-              className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <div className="relative w-full sm:w-72">
+              <Search
+                aria-hidden="true"
+                className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400"
               />
-            </svg>
-            <input
-              placeholder="Search vehicles..."
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              className="w-full pl-9 pr-4 py-2.5 text-sm bg-white border border-gray-200 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all"
-            />
+              <input
+                aria-label="Search vehicles"
+                placeholder="Search vehicles..."
+                value={search}
+                onChange={(event) => {
+                  setSearch(event.target.value);
+                  setPage(1);
+                }}
+                className="w-full border border-gray-200 bg-white py-2.5 pl-9 pr-10 text-sm text-gray-900 caret-primary shadow-sm transition-all placeholder:text-gray-400 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+              {search && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearch("");
+                    setPage(1);
+                  }}
+                  aria-label="Clear vehicle search"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-gray-400 transition hover:text-gray-700"
+                >
+                  <X size={16} />
+                </button>
+              )}
+            </div>
+            <Link
+              href="/admin/listings/upload"
+              className="inline-flex shrink-0 items-center justify-center gap-2 bg-primary px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-primary-dark"
+            >
+              <Plus size={17} />
+              Add vehicle
+            </Link>
           </div>
         </div>
 
         <div className="h-px bg-gradient-to-r from-primary via-primary/40 to-transparent mb-6" />
+
+        {loadError && (
+          <p
+            role="alert"
+            className="mb-5 border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+          >
+            {loadError}
+          </p>
+        )}
+
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-3 text-sm text-gray-500">
+          <p aria-live="polite">
+            {search.trim()
+              ? `${filteredCars.length} matching vehicle${filteredCars.length === 1 ? "" : "s"}`
+              : `${cars.length} vehicle${cars.length === 1 ? "" : "s"}`}
+          </p>
+          <label className="flex items-center gap-2">
+            <span>Rows per page</span>
+            <select
+              aria-label="Rows per page"
+              value={pageSize}
+              onChange={(event) => {
+                setPageSize(Number(event.target.value));
+                setPage(1);
+              }}
+              className="border border-gray-200 bg-white px-2.5 py-2 text-sm text-gray-700 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              {[10, 25, 50].map((size) => (
+                <option key={size} value={size}>
+                  {size}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
 
         <div className="bg-white rounded-2xl shadow-xl shadow-gray-200/60 border border-gray-100 overflow-hidden">
           {isLoading ? (
@@ -278,9 +391,13 @@ export default function VehicleList() {
                 />
               </svg>
               <p className="text-lg font-semibold text-gray-300">
-                No vehicles found
+                {search.trim() ? "No matching vehicles" : "No vehicles found"}
               </p>
-              <p className="text-sm mt-1">Upload a vehicle to see it here</p>
+              <p className="text-sm mt-1">
+                {search.trim()
+                  ? "Try a different search term or clear your search."
+                  : "Upload a vehicle to see it here"}
+              </p>
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -330,7 +447,7 @@ export default function VehicleList() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {filteredCars.map((car) => {
+                  {paginatedCars.map((car) => {
                     const previewImage = primaryImageFor(car);
 
                     return (
@@ -506,9 +623,51 @@ export default function VehicleList() {
         </div>
 
         {filteredCars.length > 0 && (
-          <p className="text-xs text-gray-400 mt-4 text-right">
-            Showing {filteredCars.length} of {cars.length} vehicles
-          </p>
+          <div className="mt-4 flex flex-col gap-3 border border-gray-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-xs text-gray-500">
+              Showing {pageStart + 1}–{Math.min(pageStart + pageSize, filteredCars.length)} of{" "}
+              {filteredCars.length} vehicle{filteredCars.length === 1 ? "" : "s"}
+            </p>
+            <nav
+              aria-label="Vehicle inventory pages"
+              className="flex items-center justify-center gap-1"
+            >
+              <button
+                type="button"
+                onClick={() => setPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                aria-label="Previous page"
+                className="flex h-9 w-9 items-center justify-center border border-gray-200 text-gray-600 transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <ChevronLeft size={17} />
+              </button>
+              {visiblePages.map((pageNumber) => (
+                <button
+                  key={pageNumber}
+                  type="button"
+                  onClick={() => setPage(pageNumber)}
+                  aria-label={`Page ${pageNumber}`}
+                  aria-current={currentPage === pageNumber ? "page" : undefined}
+                  className={`h-9 min-w-9 border px-2 text-sm font-semibold transition ${
+                    currentPage === pageNumber
+                      ? "border-primary bg-primary text-white"
+                      : "border-gray-200 text-gray-600 hover:border-primary hover:text-primary"
+                  }`}
+                >
+                  {pageNumber}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={() => setPage(currentPage + 1)}
+                disabled={currentPage === pageCount}
+                aria-label="Next page"
+                className="flex h-9 w-9 items-center justify-center border border-gray-200 text-gray-600 transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-40"
+              >
+                <ChevronRight size={17} />
+              </button>
+            </nav>
+          </div>
         )}
       </div>
 

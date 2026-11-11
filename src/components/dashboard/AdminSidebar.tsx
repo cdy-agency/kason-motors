@@ -5,22 +5,36 @@ import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
-  List,
-  Plus,
+  CarFront,
   Settings,
   LogOut,
   ChevronRight,
   MessageSquare,
   Newspaper,
   Tags,
+  Images,
+  type LucideIcon,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+
+type MenuItem = {
+  label: string;
+  href: string;
+  icon: LucideIcon;
+  badge: string | null;
+  description?: string;
+};
+
+type MenuGroup = {
+  label: string;
+  items: MenuItem[];
+};
 
 type AdminSidebarProps = {
   fullName: string;
 };
 
-const menuGroups = [
+const menuGroups: MenuGroup[] = [
   {
     label: "Overview",
     items: [
@@ -36,16 +50,11 @@ const menuGroups = [
     label: "Vehicles",
     items: [
       {
-        label: "All Listings",
+        label: "Vehicles",
         href: "/admin/listings",
-        icon: List,
+        icon: CarFront,
         badge: null,
-      },
-      {
-        label: "Upload Vehicle",
-        href: "/admin/listings/upload",
-        icon: Plus,
-        badge: "New",
+        description: "Manage listings and stock",
       },
     ],
   },
@@ -62,6 +71,17 @@ const menuGroups = [
         label: "Categories & Tags",
         href: "/admin/blog/categories",
         icon: Tags,
+        badge: null,
+      },
+    ],
+  },
+  {
+    label: "Website",
+    items: [
+      {
+        label: "Hero Banners",
+        href: "/admin/hero",
+        icon: Images,
         badge: null,
       },
     ],
@@ -204,21 +224,19 @@ export default function AdminSidebar({ fullName }: AdminSidebarProps) {
                         key={item.label}
                         href={item.href}
                         title={collapsed ? item.label : undefined}
-                        className={`flex items-center gap-3 px-2.5 py-2.5 text-[13px] font-medium transition-all duration-150 group
-                          ${
-                            isActive
-                              ? "bg-primary text-white"
-                              : "text-gray-dark hover:bg-gray-light hover:text-primary"
-                          }`}
+                        className={`group flex items-center gap-3 border-l-2 px-2.5 py-2.5 text-[13px] font-medium transition-all duration-150 ${
+                          isActive
+                            ? "border-primary bg-primary/10 text-primary"
+                            : "border-transparent text-gray-dark hover:border-primary/40 hover:bg-gray-light hover:text-primary"
+                        }`}
                       >
                         <Icon
                           size={16}
-                          className={`shrink-0 transition-colors duration-150
-                            ${
-                              isActive
-                                ? "text-white"
-                                : "text-gray-mid group-hover:text-primary"
-                            }`}
+                          className={`shrink-0 transition-colors duration-150 ${
+                            isActive
+                              ? "text-primary"
+                              : "text-gray-mid group-hover:text-primary"
+                          }`}
                         />
 
                         <AnimatePresence>
@@ -228,9 +246,16 @@ export default function AdminSidebar({ fullName }: AdminSidebarProps) {
                               animate={{ opacity: 1 }}
                               exit={{ opacity: 0 }}
                               transition={{ duration: 0.15 }}
-                              className="flex-1 whitespace-nowrap"
+                              className="min-w-0 flex-1"
                             >
-                              {item.label}
+                              <span className="block whitespace-nowrap">
+                                {item.label}
+                              </span>
+                              {item.description && (
+                                <span className="mt-0.5 block truncate text-[10px] font-normal text-gray-mid">
+                                  {item.description}
+                                </span>
+                              )}
                             </motion.span>
                           )}
                         </AnimatePresence>

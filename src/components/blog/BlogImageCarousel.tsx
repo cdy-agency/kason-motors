@@ -119,11 +119,6 @@ export default function BlogImageCarousel({ title, images }: Props) {
           {activeIndex + 1} / {imageList.length}
         </span>
       </div>
-      {imageList.length > 1 && (
-        <p className="mt-3 text-center text-xs text-font/50">
-          Use the arrows or swipe to browse the photos
-        </p>
-      )}
     </section>
   );
 }
