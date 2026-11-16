@@ -8,14 +8,7 @@ import {
   FaXTwitter,
   FaYoutube,
 } from "react-icons/fa6";
-
-const quickLinks = [
-  { label: "Home", href: "/" },
-  { label: "Inventory", href: "/inventory" },
-  { label: "Blog & News", href: "/blog" },
-  { label: "About Us", href: "/about-us" },
-  { label: "Contact", href: "/contact" },
-];
+import { SITE_NAV_LINKS } from "@/lib/navigation";
 
 const carTypes = [
   { label: "SUV", href: "#" },
@@ -79,7 +72,7 @@ export default function Footer() {
               Quick Links
             </h4>
             <ul className="space-y-3">
-              {quickLinks.map((link) => (
+              {SITE_NAV_LINKS.map((link) => (
                 <li key={link.label}>
                   <Link
                     href={link.href}
@@ -116,15 +109,25 @@ export default function Footer() {
               </li>
 
               <li>
-                <a
-                  href="mailto:daniel@kasonev.com"
-                  className="flex items-start gap-3 text-white/40 text-sm hover:text-white transition-colors group"
-                >
-                  <span className="mt-0.5 w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
+                <div className="flex items-start gap-3 text-white/40 text-sm">
+                  <span className="mt-0.5 w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center shrink-0">
                     <Mail size={12} className="text-primary" />
                   </span>
-                  daniel@kasonev.com
-                </a>
+                  <span className="flex flex-col">
+                    <a
+                      className="transition-colors hover:text-white"
+                      href="mailto:daniel@kasonev.com"
+                    >
+                      daniel@kasonev.com
+                    </a>
+                    <a
+                      className="transition-colors hover:text-white"
+                      href="mailto:kasonmotor063769@gmail.com"
+                    >
+                      kasonmotor063769@gmail.com
+                    </a>
+                  </span>
+                </div>
               </li>
 
               <li>

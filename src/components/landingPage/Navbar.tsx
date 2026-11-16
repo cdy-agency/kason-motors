@@ -21,19 +21,23 @@ import {
   Newspaper,
 } from "lucide-react";
 import { CONTACT_PHONE_NUMBERS } from "@/lib/contact";
+import {
+  DISCOVER_NAV_LINKS,
+  PRIMARY_NAV_LINKS,
+} from "@/lib/navigation";
 
-const navLinks = [
-  { label: "Home", href: "/" },
-  { label: "Inventory", href: "/inventory" },
-];
-
-const discoverLinks = [
-  { label: "About Us", href: "/about-us", icon: <Info size={15} /> },
-  { label: "Blog & News", href: "/blog", icon: <Newspaper size={15} /> },
-  { label: "Our Services", href: "/services", icon: <Wrench size={15} /> },
-  { label: "Contact Us", href: "/contact", icon: <Mail size={15} /> },
-  { label: "Maintenance ", href: "/mentenance", icon: <ClipboardList size={15} /> },
-];
+const navLinks = PRIMARY_NAV_LINKS;
+const discoverIcons = {
+  "/about-us": <Info size={15} />,
+  "/blog": <Newspaper size={15} />,
+  "/services": <Wrench size={15} />,
+  "/contact": <Mail size={15} />,
+  "/mentenance": <ClipboardList size={15} />,
+};
+const discoverLinks = DISCOVER_NAV_LINKS.map((link) => ({
+  ...link,
+  icon: discoverIcons[link.href],
+}));
 
 type NavbarProps = {
   user?: { fullName: string; email: string; role: string } | null;
