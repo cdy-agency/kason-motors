@@ -20,6 +20,7 @@ import {
   ClipboardList,
   Newspaper,
 } from "lucide-react";
+import { CONTACT_PHONE_NUMBERS } from "@/lib/contact";
 
 const navLinks = [
   { label: "Home", href: "/" },
@@ -117,7 +118,13 @@ export default function Navbar({ user }: NavbarProps) {
             <span className="sm:hidden">CHINA EV MALL Special Economic Zone</span>
           </span>
           <span className="flex items-center gap-1.5">
-            <Phone size={12} /> +250 799 525 895 / +250 793 154 837
+            <Phone size={12} />
+            {CONTACT_PHONE_NUMBERS.map((number, index) => (
+              <span key={number.e164}>
+                <a href={`tel:${number.e164}`}>{number.display}</a>
+                {index < CONTACT_PHONE_NUMBERS.length - 1 && " / "}
+              </span>
+            ))}
           </span>
           <span className="hidden md:flex items-center gap-1.5">
             <Clock size={12} /> Monday - Sunday
@@ -484,7 +491,14 @@ export default function Navbar({ user }: NavbarProps) {
                     <MapPin size={13} className="text-primary" /> KG 11 Ave, Kigali, Rwanda
                   </span>
                   <span className="flex items-center gap-2">
-                    <Phone size={13} className="text-primary" /> +250 791 000 000
+                    <Phone size={13} className="text-primary" />
+                    <span className="flex flex-col">
+                      {CONTACT_PHONE_NUMBERS.map((number) => (
+                        <a key={number.e164} href={`tel:${number.e164}`}>
+                          {number.display}
+                        </a>
+                      ))}
+                    </span>
                   </span>
                   <span className="flex items-center gap-2">
                     <Clock size={13} className="text-primary" /> Mon–Fri: 8:00–17:00

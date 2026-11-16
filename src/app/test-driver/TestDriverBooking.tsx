@@ -363,7 +363,7 @@ export default function TestDriverBooking() {
               type="tel"
               value={form.phone}
               onChange={handleChange}
-              placeholder="+250 700 000 000"
+              placeholder="+250 7XX XXX XXX"
               className={inputClass("phone")}
               autoComplete="tel"
             />

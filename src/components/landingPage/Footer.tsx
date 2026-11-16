@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
-import { MapPin, Phone, Mail, Clock, Globe } from "lucide-react";
+import { MapPin, Phone, Mail, Clock } from "lucide-react";
+import { CONTACT_PHONE_NUMBERS } from "@/lib/contact";
 import {
   FaInstagram,
   FaFacebookF,
@@ -105,7 +106,12 @@ export default function Footer() {
                   <span className="mt-0.5 w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
                     <Phone size={12} className="text-primary" />
                   </span>
-                  +250 799 525 895 / +250 793 154 837
+                  {CONTACT_PHONE_NUMBERS.map((number, index) => (
+                    <span key={number.e164}>
+                      <a href={`tel:${number.e164}`}>{number.display}</a>
+                      {index < CONTACT_PHONE_NUMBERS.length - 1 && " / "}
+                    </span>
+                  ))}
                 </div>
               </li>
 
@@ -118,21 +124,6 @@ export default function Footer() {
                     <Mail size={12} className="text-primary" />
                   </span>
                   daniel@kasonev.com
-                </a>
-              </li>
-
-              {/* Website (NEW) */}
-              <li>
-                <a
-                  href="https://kasonev.en.alibaba.com"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-start gap-3 text-white/40 text-sm hover:text-white transition-colors group"
-                >
-                  <span className="mt-0.5 w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center shrink-0 group-hover:bg-primary/20 transition-colors">
-                    <Globe size={12} className="text-primary" />
-                  </span>
-                  www.kasonev.com
                 </a>
               </li>
 

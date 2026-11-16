@@ -1,12 +1,10 @@
+import { CONTACT_PHONE_NUMBERS } from "./contact";
+
 /**
- * E.164 digits only, no + (e.g. 250791000000).
- * Override with NEXT_PUBLIC_WHATSAPP_E164 in .env
+ * Returns the primary business WhatsApp number in E.164 digits-only format.
  */
 export function getWhatsAppBusinessE164(): string {
-  const raw =
-    process.env.NEXT_PUBLIC_WHATSAPP_E164 ?? "250791000000";
-  const digits = raw.replace(/\D/g, "");
-  return digits.length > 0 ? digits : "250791000000";
+  return CONTACT_PHONE_NUMBERS[0].e164;
 }
 
 export function buildWhatsAppUrl(message: string): string {

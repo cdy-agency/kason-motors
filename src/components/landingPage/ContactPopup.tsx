@@ -149,7 +149,7 @@ export default function ContactPopup() {
                 name="phonenumber"
                 value={form.phonenumber}
                 onChange={handleChange}
-                placeholder="+250 700 000 000"
+                placeholder="+250 7XX XXX XXX"
                 className="mt-2 w-full rounded-2xl border border-line/40 bg-bg px-4 py-3 text-sm text-font outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
               />
             </label>

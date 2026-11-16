@@ -202,7 +202,7 @@ export default function Contact() {
                     type="tel"
                     value={form.phonenumber}
                     onChange={handleChange}
-                    placeholder="+250 700 000 000"
+                    placeholder="+250 7XX XXX XXX"
                     className={inputClass("phonenumber")}
                   />
                   <ErrorMsg field="phonenumber" />
