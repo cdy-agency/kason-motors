@@ -4,7 +4,7 @@ import { FaWhatsapp } from "react-icons/fa";
 import { CONTACT_PHONE_NUMBERS } from "@/lib/contact";
 
 export default function WhatsAppButton() {
-  const phoneNumber = CONTACT_PHONE_NUMBERS[1].e164;
+  const phoneNumber = CONTACT_PHONE_NUMBERS[0].e164;
 
   return (
     <a
