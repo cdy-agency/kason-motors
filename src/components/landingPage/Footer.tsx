@@ -7,6 +7,7 @@ import {
   FaFacebookF,
   FaXTwitter,
   FaYoutube,
+  FaLinkedinIn,
 } from "react-icons/fa6";
 import { SITE_NAV_LINKS } from "@/lib/navigation";
 
@@ -19,10 +20,27 @@ const carTypes = [
 ];
 
 const socials = [
-  { icon: FaInstagram, href: "#", label: "Instagram" },
-  { icon: FaFacebookF, href: "#", label: "Facebook" },
-  { icon: FaXTwitter, href: "#", label: "Twitter" },
-  { icon: FaYoutube, href: "#", label: "YouTube" },
+  {
+    icon: FaInstagram,
+    href: "https://www.instagram.com/kason_motor?utm_source=qr&vrfl=MTNhd284aGw0bnFucg%3D%3D",
+    label: "Instagram",
+  },
+  {
+    icon: FaFacebookF,
+    href: "https://www.facebook.com/profile.php?id=61580664510457",
+    label: "Facebook",
+  },
+  { icon: FaXTwitter, href: "https://x.com/kasonmotor", label: "X" },
+  {
+    icon: FaYoutube,
+    href: "https://youtube.com/@kasonmotormotor?si=9_kxwDbjPMbAKPng",
+    label: "YouTube",
+  },
+  {
+    icon: FaLinkedinIn,
+    href: "https://www.linkedin.com/in/kason-motor-motor-103807404",
+    label: "LinkedIn",
+  },
 ];
 
 export default function Footer() {
@@ -58,6 +76,8 @@ export default function Footer() {
                   key={label}
                   href={href}
                   aria-label={label}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="w-8 h-8 rounded-lg flex items-center justify-center text-white/30 hover:text-white hover:bg-white/10 transition-all duration-150"
                 >
                   <Icon size={15} />
